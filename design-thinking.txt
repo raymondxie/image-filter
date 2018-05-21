@@ -74,6 +74,39 @@ Due to each pixel processing involves neighboring pixels, we can not write targe
 So target data output will be in a separate line. And the space usage is in fact O(Wx4), which is still O(W).
 
 
+There are two options of applying 3x3 filter:
+1. take 9 pixels from source data, and apply filter to produce target data for 1 pixel (at the center);
+2. take 1 pixel from source data, and apply filter to produce "portion" of target data for 9 pixels. 
+
+Either approach will use the same amount of memory footprint if we keep 3 rows of data (either as source or target), 
+and 1 row of data (either as target or source).  In my implementation, I choose 3 rows of source + 1 row of target,
+as it seems easier to get head around.
+
+
+E. Corner Cases
+
+1. For edges and corners, with filter center on those pixels, some portion of filter are out of boundary of image. Need to handle them accordingly at proper time.
+2. each color has 2 bytes, with filter collecting neighboring pixels, the sum of the filtering result could exceed the value that 2 bytes can hold. 
+We can either cap the value at the pixel by simply replacing it with max-value of 2 bytes; or do proportionally scale back.
+
+
+F. Java Implementation
+
+I choose Java language for the implementation, with several classes to represents different pieces and their interaction, 
+in additional to the actual data processing.
+
+Depends on which language to use, there are different ways of addressing and accessing data elements, and applying calculation.
+So it may look different if trying to utilize the capability from the language.
+
+For example, Java has some packages in java.awt.image, and java 2D graphics that would provide convenience of processing
+image data, and it would hide the details of actual algorithms and would look really simple.
+
+But for this exercise, we want to illustrate the all the parts involved and the actual processing - kinda of "manual" approach.
+So I used basic language feature and skipped all the "advanced" packages, and write out the actual processing steps, 
+just like pseudocode would do to explain the processing.
+
+
+
 If you have additional ideas or concerns, please bring them up and we can discuss!
 
 Raymond Xie

@@ -1,13 +1,14 @@
 package fm.xie.filter;
 
 /**
- * Define the data content format to be processed
+ * Define the data content format to be processed.
+ * Provide basic operation definition.
  * 
  * @author yuhua
  *
  */
 
-public abstract class DataContent {
+public abstract class DataConvert {
 	int width = 0;
 	int height = 0;
 

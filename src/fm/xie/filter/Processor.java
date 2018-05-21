@@ -1,7 +1,10 @@
 package fm.xie.filter;
 
 /**
- * The driver program to carry out the filter process
+ * The driver program to coordinate and carry out the filter process
+ * 
+ * Usage:
+ * java fm.xie.filter.Processor <input-image> <output-image>
  * 
  * @author yuhua
  *
@@ -20,11 +23,11 @@ public class Processor {
 		// filter definition
 		RGBFilter filter = new RGBFilter();
 		
-		// actual image content
-		RGBFileTransform files = new RGBFileTransform(args[0], args[1]);
+		// actual image content and transformation
+		RGBFileTransform content = new RGBFileTransform(args[0], args[1]);
 		
 		Processor p = new Processor();
-		p.process(files, filter);
+		p.process(content, filter);
 		
 		System.out.println("Done processing. Check output file: " + args[1]);
 	}

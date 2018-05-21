@@ -3,8 +3,7 @@ package fm.xie.filter;
 import java.util.HashMap;
 
 /**
- * 
- * Read in from properties file about the filter definition for RGB filter
+ * The filter definition for R, G, B color channel. 
  * 
  * @author yuhua
  *
@@ -25,10 +24,11 @@ public class RGBFilter extends BaseConfig {
 	public final int width;
 	public final int height;
 
-	// This holds filter for R, G, B colors
+	// This holds filter for each of R, G, B channels
 	HashMap<String, float[][]> filters = new HashMap<String, float[][]>();
 	
 	public RGBFilter() {
+		// read in the definition from properties file.
 		super("rgb-filter.properties");
 		
 		String filter = properties.getProperty("filter");

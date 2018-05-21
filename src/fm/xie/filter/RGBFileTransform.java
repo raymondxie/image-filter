@@ -5,20 +5,36 @@ import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public class RGBFileTransform extends DataContent {
+/**
+ * The engine of filter processing.
+ * 
+ * The class holds image data streams (source and target), and takes a filter to apply transformation on 
+ * source image pixels and produce target image pixels.
+ * 
+ * @author yuhua
+ *
+ */
+public class RGBFileTransform extends DataConvert {
 	// temp buffer of picking out 2 bytes from data stream
 	private byte twoBytes[] = new byte[2];
 	
 	/**
-	 * holds the data stream during the processing 
+	 * the source data stream for processing 
 	 */
 	private BufferedInputStream inStream = null;
+
+	/**
+	 * the target data stream with filtered result after the processing 
+	 */
 	private BufferedOutputStream outStream = null;
 	
 	/**
-	 * holds the data pixel lines when we apply the filter to them.
-	 * In our implementation, we hold 3 lines, with each line: width x 6 bytes
+	 * Holds the data pixel lines when we apply the filter to them.
+	 * In our implementation, we hold 3 lines, with each line: width x 6 bytes.
+	 * The lines rotate to re-use the space, such as (2,0,1) -> (0,1,2) -> (1,2,0) -> (2,0,1) -> ...
 	 */
 	private byte lines[][];
 	
@@ -42,9 +58,10 @@ public class RGBFileTransform extends DataContent {
 	private RGBFilter filter;
 	
 	/**
-	 * The image data comes from a file
+	 * The image data comes from a file, and will write to a file after filter is applied.
 	 * 
-	 * @param fileName
+	 * @param inputFile	 input file name
+	 * @param outputFile  output file name
 	 */
 	public RGBFileTransform(String inputFile, String outputFile) {
 		try {
@@ -52,12 +69,15 @@ public class RGBFileTransform extends DataContent {
 			inStream = new BufferedInputStream(new FileInputStream(inputFile));
 			outStream = new BufferedOutputStream(new FileOutputStream(outputFile));
 						
-			// the image size: W x H... seems most of image does not observe WxH definition at this spot or size. 
-			// You may comment out this, and use following fixed width x height for some testing
-			width = inStream.read(twoBytes);
-			height = inStream.read(twoBytes);		
+			// the image size: W x H... 
+			//TODO:  check it out - seems most of image does not observe WxH definition at this offset or size, in the input stream; so data could be wrong!!		
+			inStream.read(twoBytes);
+			width = (int)(twoBytes[0] & 0x00FF << 8 | twoBytes[1] & 0x00FF);
 			
-			//TODO: for testing, commented it out later
+			inStream.read(twoBytes);		
+			height = (int)(twoBytes[0] & 0x00FF << 8 | twoBytes[1] & 0x00FF);
+			
+			//TODO: for testing, commented it out
 			// width = 100;
 			// height = 30;
 			
@@ -67,6 +87,8 @@ public class RGBFileTransform extends DataContent {
 			lines = new byte[BUFFERLINES][LINEBYTES];
 			result = new byte[LINEBYTES];
 			pReadLine = 0;
+			
+			System.out.printf("Image size: (%d, %d) \n", width, height );
 		}
 		catch(IOException io) {
 			io.printStackTrace();
@@ -74,8 +96,18 @@ public class RGBFileTransform extends DataContent {
 	}
 	
 	/**
-	 * Reads in one line of image data, with byte count:
-	 * byte_count_per_pixel x pixel_per_row
+	 * We can process image data from any streaming data, such as over Internet,
+	 * in additional to file.
+	 * 
+	 * @param in
+	 * @param out
+	 */
+	public RGBFileTransform(InputStream in, OutputStream out) {
+		// TODO: implement later
+	}
+	
+	/**
+	 * Reads in one line of image data, with byte count at: byte_count_per_pixel x pixel_per_row
 	 */
 	@Override
 	public void feedInBuffer() {
@@ -108,6 +140,8 @@ public class RGBFileTransform extends DataContent {
 	
 	/**
 	 * Apply the filter to the content to produce target pixel result
+	 * 
+	 * @param rgbFilter	 the filter definition used to apply on source image data.
 	 */
 	@Override
 	public void apply(RGBFilter rgbFilter) {
@@ -124,11 +158,14 @@ public class RGBFileTransform extends DataContent {
 			processLine();
 		}
 		
+		// flush data and close data stream
+		doneProcessing();
+		
 		System.out.println("Completed to apply filter to all pixels");
 	}
 	
 	/**
-	 * process current image row by filter
+	 * process current line of image row by filter
 	 */
 	@Override
 	public void processLine() {
@@ -138,6 +175,7 @@ public class RGBFileTransform extends DataContent {
 		int prev = (pProcessLine-1) % BUFFERLINES;
 		if( pProcessLine < 1) {
 			// corner case #3: if processing first line, the prev buffer is at index = 2;
+			// think the 3 lines of cache as rotating lines
 			prev = 2;
 		}
 		int curr = pProcessLine % BUFFERLINES;
@@ -151,6 +189,7 @@ public class RGBFileTransform extends DataContent {
 			pCol++;
 		}
 		
+		// We got the result line now!
 		try {
 			outStream.write(result);
 		}
@@ -167,7 +206,7 @@ public class RGBFileTransform extends DataContent {
 
 
 	/**
-	 * Apply the filter to pixel at position: (col, curr) 
+	 * Apply the filter to pixel at position: (curr, col) 
 	 *  
 	 * @param col	horizontal poistion on the line
 	 * @param prev	index to previous line in cache
@@ -175,7 +214,7 @@ public class RGBFileTransform extends DataContent {
 	 * @param next	index to next line in cache
 	 */
 	private void processPixel(int col, int prev, int curr, int next) {
-
+		// filter contains 3 configurations, one for each color: R, G, B
 		float[][] fred = filter.filters.get("filter.r");
 		float[][] fgreen = filter.filters.get("filter.g");
 		float[][] fblue = filter.filters.get("filter.b");
@@ -196,67 +235,56 @@ public class RGBFileTransform extends DataContent {
 					case 1: row = next; break;
 				}
 
-				byte cc;
+				byte[] cc = new byte[6];
 				
-				// corner case #5: need to safeguard column
+				// corner case #4: need to safeguard column
 				//
 				if( col+j < 0 || col+j >= width ) {
 					// out of bound on left, or right side, just set 6 bytes of 0 for it
-					byte[] temp = new byte[6];
-					cc = temp[0];
+					; // cc = new byte[6];
 				}
 				else {
-					cc = lines[row][(col+j)*6];
+					for(int k=0; k<6; k++) {
+						cc[k] = lines[row][(col+j)*6+k];
+					}
 				}
 				
 				// note: filter coordinate is centered on (1,1), while original data is centered on (0,0)
-				red += Math.round( (cc & 0x00FF << 8 + (cc++) & 0x00FF) * fred[1+i][1+j] ); 
-				green += Math.round( ((cc++) & 0x00FF << 8 + (cc++) & 0x00FF) * fgreen[i+1][j+1] );
-				blue += Math.round( ((cc++) & 0x00FF << 8 + (cc++) & 0x00FF) * fblue[i+1][j+1] );
+				// do a math round, and accumulates data from result of each neighboring pixels for each color channel
+				red += Math.round( (cc[0] & 0x00FF << 8 + cc[1] & 0x00FF) * fred[1+i][1+j] ); 
+				green += Math.round( (cc[2] & 0x00FF << 8 + cc[3] & 0x00FF) * fgreen[i+1][j+1] );
+				blue += Math.round( (cc[4] & 0x00FF << 8 + cc[5] & 0x00FF) * fblue[i+1][j+1] );
 			}
 		}
 		
+		// corner case #5: the sum of filtering data could exceed the range, shall we do a cap on it?
+		// TODO: check the corner case later 
 		// put the 6 bytes to target line
 		int c = col * 6;	// index at the target pixel data 
-		result[c] = (byte) (red & 0x0000FF00 >> 8);
+		result[c]   = (byte) (red & 0x0000FF00 >> 8);
 		result[c+1] = (byte) (red & 0x000000FF);
 		result[c+2] = (byte) (green & 0x0000FF00 >> 8);
 		result[c+3] = (byte) (green & 0x000000FF);
 		result[c+4] = (byte) (blue & 0x0000FF00 >> 8);
 		result[c+5] = (byte) (blue & 0x000000FF);
-		
-		
 	}
 
-	
-	
+
 	/**
-	 * Called after all data content have been fetched. 
-	 * We reached to the end of data stream, close the stream
+	 * Called after we finish process to close the streams for cleanup.
 	 */
-	public void doneInput() {
+	private void doneProcessing() {
 		try {
 			if(inStream != null) {
 				inStream.close();
 			}
-		}
-		catch(IOException io) {
-			System.err.println("Unable to close input stream after reaching to its end");
-		}
-	}
-	
-	/**
-	 * Called after we finish process
-	 */
-	public void doneOutput() {
-		try {
 			if(outStream != null) {
 				outStream.flush();
 				outStream.close();
 			}
 		}
 		catch(IOException io) {
-			System.err.println("Unable to close output stream after reaching to its end");
+			System.err.println("Unable to close data stream after reaching to its end");
 		}
 	}
 

@@ -1,20 +1,26 @@
 package fm.xie.filter;
 
 /**
- * Define the pixel data as defined:
- * 3 color of R, G, B, with each color having 2 bytes.
+ * Define the pixel data format in data stream.
+ * For example, 3 color of R, G, B, with each color having 2 bytes.
  * 
- * We should read from a properties file to defined the "pixel" definition
  * 
  * @author yuhua
  *
  */
 public class RGBPixel extends BaseConfig {	
-	// pixel bytes: e.g. each pixel has 6 bytes
+	/**
+	 * The number of bytes for one pixel
+	 */
 	private int LENGTH;
+	
+	/**
+	 * The pixel data from image stream
+	 */
 	private byte[] data;
 
 	public RGBPixel() {
+		// read from a properties file to defined the "pixel" definition
 		super("rgb-pixel.properties");
 		
 		String length = properties.getProperty("length");
@@ -48,6 +54,11 @@ public class RGBPixel extends BaseConfig {
 		return data;
 	}
 	
+	/*
+	 * In our specific requirement, we use 2 bytes for each color depth. 
+	 * TODO: make following method generic based on actual definition of pixel
+	 */
+	
 	public int red() {
 		return data[0] & 0x00FF << 8 | data[1] & 0x00FF; 
 	}
@@ -59,7 +70,5 @@ public class RGBPixel extends BaseConfig {
 	public int blue() {
 		return data[4] & 0x00FF << 8 | data[5] & 0x00FF; 
 	}
-	
-	
 	
 }
