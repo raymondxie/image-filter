@@ -20,7 +20,7 @@ public class RGBPixel extends BaseConfig {
 	private byte[] data;
 
 	public RGBPixel() {
-		// read from a properties file to defined the "pixel" definition
+		// read from a properties file to define the "pixel" definition
 		super("rgb-pixel.properties");
 		
 		String length = properties.getProperty("length");
@@ -36,6 +36,14 @@ public class RGBPixel extends BaseConfig {
 		}	
 	}
 	
+	public int length() {
+		return LENGTH;
+	}
+	
+	public byte[] getData() {
+		return data;
+	}
+	
 	/**
 	 * Set a byte value to a specified offset
 	 * 
@@ -44,14 +52,6 @@ public class RGBPixel extends BaseConfig {
 	 */
 	public void setByte(int offset, byte b) {
 		data[offset] = b;
-	}
-	
-	public int length() {
-		return LENGTH;
-	}
-	
-	public byte[] getData() {
-		return data;
 	}
 	
 	/*
