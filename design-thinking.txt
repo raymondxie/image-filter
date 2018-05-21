@@ -1,4 +1,4 @@
-A. Requirement
+## A. Requirement
 
 For this problem, pseudo code is OK, or pick a language.
 Your job is to take an input image (a picture) and process it with a filter to produce a modified output image.
@@ -8,7 +8,7 @@ Each pixel in the output image is formed by multiplying neighbor pixels with fil
 For example, if the red filter is [[0.1, 0, 0], [0, 0, 0], [0, 0, 0.2]] then the red value for each pixel in the output image would be formed by multiplying 0.1 times the red value from the pixel above and left, multiplying 0.2 times the red value from the pixel below and right, then adding them.
 
 
-B. Generalization / Abstraction
+## B. Generalization / Abstraction
 
 The particular task is very specific in processing one type of image in a specific format.
 
@@ -34,7 +34,7 @@ Of course, filter pattern can be defined, so we use that as a mask to pick out c
 Also the image can be from a file, or data stream over another channel, etc.
 
 
-C. Specifics of task
+## C. Specifics of task
 
 For this particular exercise, I intend to code a "generic way" so we may supply different definition properties in the future for different type of images.
 
@@ -56,7 +56,7 @@ p(i-1, j+1), p(i, j+1), p(i+1, j+1)
 The result target pixel:  t(i,j) = sum( f(i,j) * p(i,j) ), where for f and p observing i,j in (-1,0,1) 
 
 
-D. Processing
+## D. Processing
 
 We need to read sufficient number pixels (at least 9 pixels) in order for applying filter pattern on corresponding pixels.
 
@@ -83,14 +83,14 @@ and 1 row of data (either as target or source).  In my implementation, I choose 
 as it seems easier to get head around.
 
 
-E. Corner Cases
+## E. Corner Cases
 
 1. For edges and corners, with filter center on those pixels, some portion of filter are out of boundary of image. Need to handle them accordingly at proper time.
 2. each color has 2 bytes, with filter collecting neighboring pixels, the sum of the filtering result could exceed the value that 2 bytes can hold. 
 We can either cap the value at the pixel by simply replacing it with max-value of 2 bytes; or do proportionally scale back.
 
 
-F. Java Implementation
+## F. Java Implementation
 
 I choose Java language for the implementation, with several classes to represents different pieces and their interaction, 
 in additional to the actual data processing.
