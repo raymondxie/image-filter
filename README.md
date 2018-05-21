@@ -3,7 +3,7 @@
 #### An exercise to design and explain how to apply 3x3 filter to an image.
 
 ## Design
-Please [check the thought process](../master/design-thinking.txt) of this design and implementation.
+Please [check the thought process](../master/design-thinking.md) of this design and implementation.
 
 ## Implementation
 
