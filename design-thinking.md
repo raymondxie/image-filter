@@ -25,10 +25,10 @@ For example, by extracting image content meta information from data stream, we c
 *ContentDataFormat*
 
 ````
-width                   (offset, length)	=> integer,  1024
-height                  (offset, length)	=> integer,   960
-content_start_point     (offset)			=> integer,	   10  
-pixel_length            (length_in_bytes)	=> integer,	    4 
+width                   (offset, length)    => integer,  1024
+height                  (offset, length)    => integer,  960
+content_start_point     (offset)            => integer,  10  
+pixel_length            (length_in_bytes)   => integer,  4 
 ````
 
 The same applies to pixel definition (e.g. 4 bytes of RGBA for .jpg), and in our example, we use (6 bytes of RGB with each color as 2 bytes)
