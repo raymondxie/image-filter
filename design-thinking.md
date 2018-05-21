@@ -24,10 +24,12 @@ Or we can develop our code in a "generic" way, so if you supply a different type
 For example, by extracting image content meta information from data stream, we can handle more image content: 
 *ContentDataFormat*
 
-    width					(offset, length)	=> integer,  1024
-    height					(offset, length)	=> integer,   960
-    content_start_point 	(offset )			=> integer,	   10  
-    pixel_length			(length_in_bytes)	=> integer,	    4 
+````
+width                   (offset, length)	=> integer,  1024
+height                  (offset, length)	=> integer,   960
+content_start_point     (offset)			=> integer,	   10  
+pixel_length            (length_in_bytes)	=> integer,	    4 
+````
 
 The same applies to pixel definition (e.g. 4 bytes of RGBA for .jpg), and in our example, we use (6 bytes of RGB with each color as 2 bytes)
 *PixelDataFormat*
