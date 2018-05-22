@@ -107,7 +107,7 @@ as it seems easier to get head around.
 
 2. each color has 2 bytes, with filter collecting neighboring pixels, the sum of the filtering result could exceed the value that 2 bytes can hold. 
 
-We can either cap the value at the pixel by simply replacing it with max-value of 2 bytes; or do proportionally scale back.
+We can either cap the value at the pixel by simply replacing it with max-value of 2 bytes; or do proportionally scale back, by normalization. But either approach has its own issues due to variety of use scenarios.
 
 
 ## F. Java Implementation
